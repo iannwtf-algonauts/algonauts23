@@ -4,7 +4,7 @@ from FeaturePicker import FeaturePicker
 from sklearn.linear_model import LinearRegression
 
 
-def predict(batch_size, model, layer_name, dataset, dataloaders):
+def predict(batch_size, model, layer_name, dataset, dataloaders, n_components):
     folder = f'{dataset.subject_submission_dir}/{layer_name}_{batch_size}'
     print(folder)
     # Create the submission directory if not existing
@@ -12,7 +12,7 @@ def predict(batch_size, model, layer_name, dataset, dataloaders):
         os.makedirs(folder)
 
     train_imgs_dataloader, val_imgs_dataloader, test_imgs_dataloader = dataloaders
-    feature_picker = FeaturePicker(batch_size, model, layer_name)
+    feature_picker = FeaturePicker(batch_size, model, layer_name, n_components)
     pca = feature_picker.fit_pca(train_imgs_dataloader)
     features_train = feature_picker.extract_features(train_imgs_dataloader, pca)
     features_val = feature_picker.extract_features(val_imgs_dataloader, pca)
@@ -31,6 +31,7 @@ def predict(batch_size, model, layer_name, dataset, dataloaders):
     print(features_test.shape)
     print('(Test stimulus images × PCA features)')
 
+    ## TODO implement x-fold cross validation
     # Use training fmri data to fit linear regression for each hemisphere
     reg_lh = LinearRegression().fit(features_train, dataset.lh_fmri_train)
     reg_rh = LinearRegression().fit(features_train, dataset.rh_fmri_train)

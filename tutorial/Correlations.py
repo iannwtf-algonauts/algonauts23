@@ -63,6 +63,10 @@ def plot_correlations(data_dir, lh_correlation, rh_correlation, filename):
                                  for r in range(len(lh_roi_correlation))]
     rh_median_roi_correlation = [np.median(rh_roi_correlation[r])
                                  for r in range(len(rh_roi_correlation))]
+    lh_roi_correlations = [f'{roi_name}: {lh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
+    rh_roi_correlations = [f'{roi_name}: {rh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
+    print(f'LH median roi correlation: {lh_roi_correlations}')
+    print(f'RH median roi correlation: {rh_roi_correlations}')
     plt.figure(figsize=(18, 6))
     x = np.arange(len(roi_names))
     width = 0.30
