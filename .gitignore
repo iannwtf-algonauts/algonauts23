@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Data files
+algonauts_2023_challenge_data
+algonauts_2023_challenge_submission
+results
+
+# Challange preprequisites
+algonauts_2023_challenge_tutorial.ipynb
+README.txt
