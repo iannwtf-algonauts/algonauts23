@@ -15,14 +15,27 @@ def calculate_correlation(prediction, truth):
     return correlation
 
 
-def plot_correlations(data_dir, lh_correlation, rh_correlation, filename):
+def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, output_dir, layer_name, subj):
+    plot_filename = f'{nsd_dataset.var_plot_dir}/correlations.png'
+    result_file = open(f'{output_dir}/results.txt', 'a')
+
+    # Print and write median results
+    layer_and_subject_str = f'Layer: {layer_name} Subject: {subj}'
+    lh_median = np.median(lh_correlation)
+    rh_median = np.median(rh_correlation)
+    results_str = f'LH Correlation: {lh_median} RH Correlation: {rh_median}'
+
+    print(layer_and_subject_str)
+    print(results_str)
+    result_file.writelines([layer_and_subject_str, results_str])
+
     # Load the ROI classes mapping dictionaries
     roi_mapping_files = ['mapping_prf-visualrois.npy', 'mapping_floc-bodies.npy',
                          'mapping_floc-faces.npy', 'mapping_floc-places.npy',
                          'mapping_floc-words.npy', 'mapping_streams.npy']
     roi_name_maps = []
     for r in roi_mapping_files:
-        roi_name_maps.append(np.load(os.path.join(data_dir, 'roi_masks', r),
+        roi_name_maps.append(np.load(os.path.join(nsd_dataset.data_dir, 'roi_masks', r),
                                      allow_pickle=True).item())
 
     # Load the ROI brain surface maps
@@ -37,9 +50,9 @@ def plot_correlations(data_dir, lh_correlation, rh_correlation, filename):
     lh_challenge_rois = []
     rh_challenge_rois = []
     for r in range(len(lh_challenge_roi_files)):
-        lh_challenge_rois.append(np.load(os.path.join(data_dir, 'roi_masks',
+        lh_challenge_rois.append(np.load(os.path.join(nsd_dataset.data_dir, 'roi_masks',
                                                       lh_challenge_roi_files[r])))
-        rh_challenge_rois.append(np.load(os.path.join(data_dir, 'roi_masks',
+        rh_challenge_rois.append(np.load(os.path.join(nsd_dataset.data_dir, 'roi_masks',
                                                       rh_challenge_roi_files[r])))
 
     # Select the correlation results vertices of each ROI
@@ -58,15 +71,23 @@ def plot_correlations(data_dir, lh_correlation, rh_correlation, filename):
     lh_roi_correlation.append(lh_correlation)
     rh_roi_correlation.append(rh_correlation)
 
-    # Create the plot
+    # Calculate ROI correlations
     lh_median_roi_correlation = [np.median(lh_roi_correlation[r])
                                  for r in range(len(lh_roi_correlation))]
     rh_median_roi_correlation = [np.median(rh_roi_correlation[r])
                                  for r in range(len(rh_roi_correlation))]
     lh_roi_correlations = [f'{roi_name}: {lh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
     rh_roi_correlations = [f'{roi_name}: {rh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
-    print(f'LH median roi correlation: {lh_roi_correlations}')
-    print(f'RH median roi correlation: {rh_roi_correlations}')
+
+    # Print and write ROI correlations
+    lh_roi_str = f'LH median roi correlation: {lh_roi_correlations}'
+    rh_roi_str = f'RH median roi correlation: {rh_roi_correlations}'
+    print(lh_roi_str)
+    print(rh_roi_str)
+    result_file.writelines([lh_roi_str, rh_roi_str])
+    result_file.close()
+
+    # Plot ROI correlations
     plt.figure(figsize=(18, 6))
     x = np.arange(len(roi_names))
     width = 0.30
@@ -79,5 +100,5 @@ def plot_correlations(data_dir, lh_correlation, rh_correlation, filename):
     plt.xticks(ticks=x, labels=roi_names, rotation=60)
     plt.ylabel('Median Pearson\'s $r$')
     plt.legend(frameon=True, loc=1)
-    plt.savefig(filename)
+    plt.savefig(plot_filename)
     plt.show()

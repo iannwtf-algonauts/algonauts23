@@ -129,9 +129,9 @@ dmypy.json
 .pyre/
 
 # Data files
-algonauts_2023_challenge_data
-algonauts_2023_challenge_submission
-results
+data/algonauts_2023_challenge_data/**
+data/out/*
+!data/out/sample_experiment
 
 # Challange preprequisites
 algonauts_2023_challenge_tutorial.ipynb

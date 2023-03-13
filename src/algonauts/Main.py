@@ -2,13 +2,13 @@ import numpy as np
 import torch
 from torchvision.models.feature_extraction import get_graph_node_names
 
-import Correlations
-import LinearEncoder
-from NSDDataset import NSDDataset
-from tutorial.torch_code.TorchFeatureExtractor import TorchFeatureExtractor
+from src.algonauts.evaluators import Correlations
+from src.algonauts.encoders import LinearEncoder
+from src.algonauts.data_processors.NSDDataset import NSDDataset
+from src.algonauts.feature_extractors.TorchFeatureExtractor import TorchFeatureExtractor
 
-data_dir = '../../algonauts_2023_challenge_data'
-parent_output_dir = '../output'
+data_dir = '../../../algonauts_2023_challenge_data'
+parent_output_dir = '../../output'
 
 # Pick mps for Apple chip, cuda for nvidia & cpu otherwise
 device = 'mps'  # @param ['cpu', 'cuda'] {allow-input: true}
