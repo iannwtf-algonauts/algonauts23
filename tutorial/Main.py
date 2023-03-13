@@ -5,6 +5,7 @@ from torchvision.models.feature_extraction import get_graph_node_names
 import Correlations
 import LinearEncoder
 from NSDDataset import NSDDataset
+from tutorial.torch_code.TorchFeatureExtractor import TorchFeatureExtractor
 
 data_dir = '../../algonauts_2023_challenge_data'
 parent_output_dir = '../output'
@@ -13,23 +14,17 @@ parent_output_dir = '../output'
 device = 'mps'  # @param ['cpu', 'cuda'] {allow-input: true}
 device = torch.device(device)
 
-# Load pretrained AlexNet
-# model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet')
-model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=True)
-model.to(device)  # send the model to the chosen device ('cpu' or 'cuda')
-model.eval()  # set the model to evaluation mode, since you are not training it
-model_name = 'alexnet_pt_true_all_layers'
+batch_size = 300
+random_seed = 5
+feature_extractor = TorchFeatureExtractor(batch_size, random_seed, device)
 
-# See what layers AlexNet has
-train_nodes, _ = get_graph_node_names(model)
-print(train_nodes)
+model_name = 'resnet50_torch_pt'
 
-layers = ["features.2", "features.5", "features.7", "features.9", "features.12", "classifier.2", "classifier.5",
-          "classifier.6"]
-# layers = ["features.9", "features.2", "classifier.2", "classifier.5", "classifier.6"]
+# layers = ["features.2", "features.5", "features.7", "features.9", "features.12", "classifier.2", "classifier.5",
+#           "classifier.6"]
 # layers = train_nodes
 # layers = ['features.12']
-batch_size = 300
+layers = ['layers.3.2.relu_2']
 # subjects = [1]
 subjects = [1, 2, 3, 4, 5, 6, 7, 8]
 for layer_name in layers:
@@ -39,14 +34,25 @@ for layer_name in layers:
 
         # Set data directories based on parameters
         output_dir = f'{parent_output_dir}/{model_name}/{layer_name}'
-        dataset = NSDDataset(data_dir, output_dir, subj, batch_size)
+        dataset = NSDDataset(data_dir, output_dir, subj)
 
-        # Get dataloaders
-        random_seed = 5
-        dataloaders = dataset.get_data_loaders(random_seed, device)
+        # Load model
+        # model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=True)
+        model = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_resnet50', pretrained=True)
 
-        # Extract features from layer, apply PCA and fit linear encoder to get fMRI predictions
-        lh_fmri_val_pred, rh_fmri_val_pred = LinearEncoder.predict(model, layer_name, dataset, dataloaders)
+        model.to(device)  # send the model to the chosen device ('cpu' or 'cuda')
+        model.eval()  # set the model to evaluation mode, since you are not training it
+
+        # See what layers the model has
+        train_nodes, _ = get_graph_node_names(model)
+        print(train_nodes)
+
+        train_features, val_features, test_features = feature_extractor.extract_all_features(dataset, model, layer_name)
+
+        del model
+
+        # Apply PCA and fit linear encoder to get fMRI predictions
+        lh_fmri_val_pred, rh_fmri_val_pred = LinearEncoder.predict(dataset, train_features, val_features, test_features)
         # Calculate correlations for each hemisphere
         lh_correlation = Correlations.calculate_correlation(lh_fmri_val_pred, dataset.lh_fmri_val)
         rh_correlation = Correlations.calculate_correlation(rh_fmri_val_pred, dataset.rh_fmri_val)

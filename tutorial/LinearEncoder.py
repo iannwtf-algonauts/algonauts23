@@ -1,32 +1,41 @@
-import numpy as np
 import os
 
+import numpy as np
 from sklearn.decomposition import PCA
-from FeaturePicker import get_predictions
-from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
 
-def predict(model, layer_name, dataset, dataloaders):
-    train_imgs_dataloader, val_imgs_dataloader, test_imgs_dataloader = dataloaders
-    # Extract training features
-    features_train = get_predictions(train_imgs_dataloader, model, layer_name)
+def predict(dataset, features_train, features_val, features_test):
+    # Print training feature shape
     print('\nTraining images features:')
     print(features_train.shape)
     print('(Training stimulus images × PCA features)')
 
+    # Print validation feature shape
+    print('\nValidation images features:')
+    print(features_val.shape)
+    print('(Validation stimulus images × PCA features)')
+
+    # Print test feature shape
+    print('\nTest images features:')
+    print(features_test.shape)
+    print('(Test stimulus images × PCA features)')
+
     # Prepare data processing pipeline
+    pca_l = PCA()
+    ridge_l = Ridge()
     pipe_l = Pipeline([
-                     ("reduce_dims", PCA()),
-                     ("lin_reg", Ridge())
+                     ("reduce_dims", pca_l),
+                     ("lin_reg", ridge_l)
                      ])
 
+    pca_r = PCA()
+    ridge_r = Ridge()
     pipe_r = Pipeline([
-                     ("reduce_dims", PCA()),
-                     ("lin_reg", Ridge())
+                     ("reduce_dims", pca_r),
+                     ("lin_reg", ridge_r)
                      ])
 
     # Grid search parameters. More values can be added to the arrays to do the search.
@@ -47,23 +56,13 @@ def predict(model, layer_name, dataset, dataloaders):
     print('Grid search finished for right hemisphere')
     print(f'Best params: {grid_r.best_params_}')
 
-    # Extract validation features
-    features_val = get_predictions(val_imgs_dataloader, model, layer_name)
-    print('\nValidation images features:')
-    print(features_val.shape)
-    print('(Validation stimulus images × PCA features)')
-
-    # Extract test features
-    features_test = get_predictions(test_imgs_dataloader, model, layer_name)
-    print('\nTest images features:')
-    print(features_test.shape)
-    print('(Test stimulus images × PCA features)')
-
     # Use fitted linear regressions to predict the validation and test fMRI data
     lh_fmri_val_pred = grid_l.predict(features_val)
     lh_fmri_test_pred = grid_l.predict(features_test)
+    del pca_l, ridge_l, grid_l
     rh_fmri_val_pred = grid_r.predict(features_val)
     rh_fmri_test_pred = grid_r.predict(features_test)
+    del pca_r, ridge_r, grid_r
 
     # Save test predictions
     np.save(os.path.join(dataset.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)

@@ -1,9 +1,5 @@
 import os
 import numpy as np
-from pathlib import Path
-from torch.utils.data import DataLoader, Dataset
-from PIL import Image
-from torchvision import transforms
 from sklearn.model_selection import train_test_split
 
 submission_dir = 'algonauts_2023_challenge_submission'
@@ -11,9 +7,8 @@ var_plot_dir = 'variance_graphs'
 
 
 class NSDDataset:
-    def __init__(self, data_dir, output_dir, subj, batch_size):
+    def __init__(self, data_dir, output_dir, subj):
         self.subj = format(subj, '02')
-        self.batch_size = batch_size
 
         # Configure data folders
         self.data_dir = os.path.join(data_dir, 'subj' + self.subj)
@@ -96,50 +91,3 @@ class NSDDataset:
         print('\nTest stimulus images: ' + format(len(idxs_test)))
 
         return idxs_train, idxs_val, idxs_test
-
-    def get_data_loaders(self, random_seed, device):
-        # Get the paths of all image files
-        train_imgs_paths = sorted(list(Path(self.train_img_dir).iterdir()))
-        test_imgs_paths = sorted(list(Path(self.test_img_dir).iterdir()))
-
-        idxs_train, idxs_val, idxs_test = self.get_random_partition_indices(random_seed)
-
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),  # resize the images to 224x24 pixels
-            transforms.ToTensor(),  # convert the images to a PyTorch tensor
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # normalize the images color channels
-        ])
-
-        # The DataLoaders contain the ImageDataset class
-        train_imgs_dataloader = DataLoader(
-            self.ImageDataset(train_imgs_paths, idxs_train, transform, device),
-            batch_size=self.batch_size
-        )
-        val_imgs_dataloader = DataLoader(
-            self.ImageDataset(train_imgs_paths, idxs_val, transform, device),
-            batch_size=self.batch_size
-        )
-        test_imgs_dataloader = DataLoader(
-            self.ImageDataset(test_imgs_paths, idxs_test, transform, device),
-            batch_size=self.batch_size
-        )
-
-        return train_imgs_dataloader, val_imgs_dataloader, test_imgs_dataloader
-
-    class ImageDataset(Dataset):
-        def __init__(self, imgs_paths, idxs, transform, device):
-            self.imgs_paths = np.array(imgs_paths)[idxs]
-            self.transform = transform
-            self.device = device
-
-        def __len__(self):
-            return len(self.imgs_paths)
-
-        def __getitem__(self, idx):
-            # Load the image
-            img_path = self.imgs_paths[idx]
-            img = Image.open(img_path).convert('RGB')
-            # Preprocess the image and send it to the chosen device ('cpu' or 'cuda')
-            if self.transform:
-                img = self.transform(img).to(self.device)
-            return img
