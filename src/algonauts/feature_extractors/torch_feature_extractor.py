@@ -1,5 +1,5 @@
 from torchvision.models.feature_extraction import create_feature_extractor
-from src.algonauts.data_processors.TorchDataloader import Dataloader
+from src.algonauts.data_processors.torch_dataloader import Dataloader
 import torch
 from tqdm import tqdm
 import numpy as np
