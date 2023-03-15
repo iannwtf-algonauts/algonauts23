@@ -20,10 +20,10 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     result_file = open(f'{output_dir}/results.txt', 'a')
 
     # Print and write median results
-    layer_and_subject_str = f'Layer: {layer_name} Subject: {subj}'
+    layer_and_subject_str = f'Layer: {layer_name} Subject: {subj}\n'
     lh_median = np.median(lh_correlation)
     rh_median = np.median(rh_correlation)
-    results_str = f'LH Correlation: {lh_median} RH Correlation: {rh_median}'
+    results_str = f'LH Correlation: {lh_median} RH Correlation: {rh_median}\n'
 
     print(layer_and_subject_str)
     print(results_str)
@@ -80,8 +80,8 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     rh_roi_correlations = [f'{roi_name}: {rh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
 
     # Print and write ROI correlations
-    lh_roi_str = f'LH median roi correlation: {lh_roi_correlations}'
-    rh_roi_str = f'RH median roi correlation: {rh_roi_correlations}'
+    lh_roi_str = f'LH median roi correlation: {lh_roi_correlations}\n'
+    rh_roi_str = f'RH median roi correlation: {rh_roi_correlations}\n'
     print(lh_roi_str)
     print(rh_roi_str)
     result_file.writelines([lh_roi_str, rh_roi_str])
