@@ -153,8 +153,6 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     json_filename = f'{output_dir}/results.json'
     json_data = read_json_file(json_filename)
     amended_json_data = add_data_to_json(json_data, layer_name, subj, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation)
-    print(amended_json_data)
-    print(json.dumps(amended_json_data, indent=2))
     write_json_file(json_filename, amended_json_data)
 
 
