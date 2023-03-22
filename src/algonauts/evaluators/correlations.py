@@ -3,6 +3,7 @@ import os
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 from scipy.stats import pearsonr as corr
+import json
 
 
 def calculate_correlation(prediction, truth):
@@ -14,10 +15,54 @@ def calculate_correlation(prediction, truth):
 
     return correlation
 
+def add_data_to_json(json_data, layer_name, subject_id, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation):
+    if not json_data:
+        json_data = {
+            "Layers": []
+        }
+    
+    subject = {
+        "subject": subject_id,
+        "LH_median_correlation": lh_median,
+        "RH_median_correlation": rh_median,
+        "LH_median_roi_correlation": lh_median_roi_correlation,
+        "RH_median_roi_correlation": rh_median_roi_correlation
+    }
+
+    layer = next((layer for layer in json_data["Layers"] if layer["layer_name"] == layer_name), None)
+
+    if layer is None:
+        layer = {
+            "layer_name": layer_name,
+            "Subjects": [subject]
+        }
+        json_data["Layers"].append(layer)
+    else:
+        existing_subject = next((subj for subj in layer["Subjects"] if subj["subject"] == subject_id), None)
+        
+        if existing_subject is None:
+            layer["Subjects"].append(subject)
+        else:
+            existing_subject.update(subject)
+    return json_data
+
+def read_json_file(file_name):
+    if os.path.exists(file_name):
+        with open(file_name, 'r') as file:
+            data = json.load(file)
+    else:
+        data = {}
+    return data
+
+def write_json_file(file_name, data):
+    with open(file_name, 'w') as file:
+        json.dump(data, file, indent=2)
+
+
+
 
 def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, output_dir, layer_name, subj):
     plot_filename = f'{nsd_dataset.var_plot_dir}/correlations.png'
-    result_file = open(f'{output_dir}/results.txt', 'a')
 
     # Print and write median results
     layer_and_subject_str = f'Layer: {layer_name} Subject: {subj}\n'
@@ -27,7 +72,6 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
 
     print(layer_and_subject_str)
     print(results_str)
-    result_file.writelines([layer_and_subject_str, results_str])
 
     # Load the ROI classes mapping dictionaries
     roi_mapping_files = ['mapping_prf-visualrois.npy', 'mapping_floc-bodies.npy',
@@ -71,33 +115,43 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     lh_roi_correlation.append(lh_correlation)
     rh_roi_correlation.append(rh_correlation)
 
-    # Calculate ROI correlations
-    lh_median_roi_correlation = [np.median(lh_roi_correlation[r])
-                                 for r in range(len(lh_roi_correlation))]
-    rh_median_roi_correlation = [np.median(rh_roi_correlation[r])
-                                 for r in range(len(rh_roi_correlation))]
-    lh_roi_correlations = [f'{roi_name}: {lh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
-    rh_roi_correlations = [f'{roi_name}: {rh_median_roi_correlation[i]}' for i, roi_name in enumerate(roi_names)]
-
+    def get_median_correlations_per_roi(roi_correlation, roi_names):
+        median_roi_correlations = {}
+        for i in range(len(roi_names)):
+           median_corr = np.median(roi_correlation[i])
+           if np.isnan(median_corr):
+               median_roi_correlations[roi_names[i]] = None
+           else:
+              median_roi_correlations[roi_names[i]] = median_corr
+        return median_roi_correlations
+    
+    lh_median_roi_correlation = get_median_correlations_per_roi(lh_roi_correlation, roi_names)
+    rh_median_roi_correlation = get_median_correlations_per_roi(rh_roi_correlation, roi_names) 
     # Print and write ROI correlations
-    lh_roi_str = f'LH median roi correlation: {lh_roi_correlations}\n'
-    rh_roi_str = f'RH median roi correlation: {rh_roi_correlations}\n'
-    print(lh_roi_str)
-    print(rh_roi_str)
-    result_file.writelines([lh_roi_str, rh_roi_str])
-    result_file.close()
+    print(f'LH median roi correlation: \n{lh_median_roi_correlation}\n')
+    print(f'RH median roi correlation: \n{rh_median_roi_correlation}\n')
+    # Write results to json file
+    json_filename = f'{output_dir}/results.json'
+    json_data = read_json_file(json_filename)
+    amended_json_data = add_data_to_json(json_data, layer_name, subj, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation)
+    write_json_file(json_filename, amended_json_data)
+
+
+    plottable_values_lh = [0 if value is None else value for value in list(lh_median_roi_correlation.values())]
+    plottable_values_rh = [0 if value is None else value for value in list(rh_median_roi_correlation.values())]
+    plottable_keys = list(lh_median_roi_correlation.keys())
 
     # Plot ROI correlations
     plt.figure(figsize=(18, 6))
     x = np.arange(len(roi_names))
     width = 0.30
-    plt.bar(x - width / 2, lh_median_roi_correlation, width, label='Left Hemisphere')
-    plt.bar(x + width / 2, rh_median_roi_correlation, width,
+    plt.bar(x - width / 2, plottable_values_lh, width, label='Left Hemisphere')
+    plt.bar(x + width / 2, plottable_values_rh, width,
             label='Right Hemishpere')
     plt.xlim(left=min(x) - .5, right=max(x) + .5)
     plt.ylim(bottom=0, top=1)
     plt.xlabel('ROIs')
-    plt.xticks(ticks=x, labels=roi_names, rotation=60)
+    plt.xticks(ticks=x, labels=plottable_keys, rotation=60)
     plt.ylabel('Median Pearson\'s $r$')
     plt.legend(frameon=True, loc=1)
     plt.savefig(plot_filename)
