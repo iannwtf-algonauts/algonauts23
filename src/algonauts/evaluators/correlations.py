@@ -15,54 +15,35 @@ def calculate_correlation(prediction, truth):
 
     return correlation
 
-def add_data_to_json(json_data, layer_name, subject, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation):
+def add_data_to_json(json_data, layer_name, subject_id, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation):
     if not json_data:
         json_data = {
             "Layers": []
         }
+    
+    subject = {
+        "subject": subject_id,
+        "LH_median_correlation": lh_median,
+        "RH_median_correlation": rh_median,
+        "LH_median_roi_correlation": lh_median_roi_correlation,
+        "RH_median_roi_correlation": rh_median_roi_correlation
+    }
 
-    layer_found = False
-    for layer in json_data["Layers"]:
-        if layer["layer_name"] == layer_name:
-            layer_found = True
-            
-            subject_found = False
-            for subject_data in layer["Subjects"]:
-                if subject_data["subject"] == subject:
-                    subject_found = True
-                    subject_data["LH_median_correlation"] = lh_median
-                    subject_data["RH_median_correlation"] = rh_median
-                    subject_data["LH_median_roi_correlation"] = lh_median_roi_correlation
-                    subject_data["RH_median_roi_correlation"] = rh_median_roi_correlation
-                    break
-            
-            if not subject_found:
-                subject_data = {
-                    "subject": subject,
-                    "LH_median_correlation": lh_median,
-                    "RH_median_correlation": rh_median,
-                    "LH_median_roi_correlation": lh_median_roi_correlation,
-                    "RH_median_roi_correlation": rh_median_roi_correlation
-                }
-                layer["Subjects"].append(subject_data)
-            
-            break
+    layer = next((layer for layer in json_data["Layers"] if layer["layer_name"] == layer_name), None)
 
-    if not layer_found:
-        new_layer = {
+    if layer is None:
+        layer = {
             "layer_name": layer_name,
-            "Subjects": [
-                {
-                    "subject": subject,
-                    "LH_correlation": lh_median,
-                    "RH_correlation": rh_median,
-                    "LH_median_roi_correlation": lh_median_roi_correlation,
-                    "RH_median_roi_correlation": rh_median_roi_correlation
-                }
-            ]
+            "Subjects": [subject]
         }
-        json_data["Layers"].append(new_layer)
-
+        json_data["Layers"].append(layer)
+    else:
+        existing_subject = next((subj for subj in layer["Subjects"] if subj["subject"] == subject_id), None)
+        
+        if existing_subject is None:
+            layer["Subjects"].append(subject)
+        else:
+            existing_subject.update(subject)
     return json_data
 
 def read_json_file(file_name):
