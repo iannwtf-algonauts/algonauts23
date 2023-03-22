@@ -134,7 +134,7 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     lh_roi_correlation.append(lh_correlation)
     rh_roi_correlation.append(rh_correlation)
 
-    def get_median_correlatoins_per_roi(roi_correlation, roi_names):
+    def get_median_correlations_per_roi(roi_correlation, roi_names):
         median_roi_correlations = {}
         for i in range(len(roi_names)):
            median_corr = np.median(roi_correlation[i])
@@ -144,8 +144,8 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
               median_roi_correlations[roi_names[i]] = median_corr
         return median_roi_correlations
     
-    lh_median_roi_correlation = get_median_correlatoins_per_roi(lh_roi_correlation, roi_names)
-    rh_median_roi_correlation = get_median_correlatoins_per_roi(rh_roi_correlation, roi_names) 
+    lh_median_roi_correlation = get_median_correlations_per_roi(lh_roi_correlation, roi_names)
+    rh_median_roi_correlation = get_median_correlations_per_roi(rh_roi_correlation, roi_names) 
     # Print and write ROI correlations
     print(f'LH median roi correlation: \n{lh_median_roi_correlation}\n')
     print(f'RH median roi correlation: \n{rh_median_roi_correlation}\n')
