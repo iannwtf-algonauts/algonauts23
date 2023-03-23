@@ -3,10 +3,16 @@ import os
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 from scipy.stats import pearsonr as corr
-import json
+from src.algonauts.utils.file import read_json_file, write_json_file
 
 
 def calculate_correlation(prediction, truth):
+    """
+    Calculate pearson correlations given predictions and true values
+    :param prediction: array of predictions
+    :param truth: array of true values
+    :return: array of correlations
+    """
     # Empty correlation array with shape of prediction
     correlation = np.zeros(prediction.shape[1])
     # Correlate each predicted LH vertex with the corresponding ground truth vertex
@@ -15,12 +21,61 @@ def calculate_correlation(prediction, truth):
 
     return correlation
 
-def add_data_to_json(json_data, layer_name, subject_id, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation):
+
+def find_best_correlations(json_path, subject_id):
+    """
+    Load results.json file and return the layers with the best correlations per ROI
+    :param json_path: path to results.json file (including filename)
+    :param subject_id: subject to calculate the best correlations for
+    :return: dictionary of layer-correlation values for each ROI per each hemisphere
+    example: {"LH": { "V1": { "layer": "layer1", "value": 40.1234 } },
+            "RH": { "V1": { "layer": "layer1", "value": 40.1234 } } }
+    """
+    data = read_json_file(json_path)
+
+    layers_names_with_filtered_subjects = [
+        (layer["layer_name"], subj)
+        for layer in data["Layers"]
+        for subj in layer["Subjects"]
+        if subj["subject"] == subject_id
+    ]
+
+    def max_layer_value(subj_data, hemi, roi):
+        max_layer, max_value = max(
+            (
+                (layer_name, roi_corr.get(roi))
+                for layer_name, subj in subj_data
+                for roi_corr in [subj[f"{hemi}_median_roi_correlation"]]
+                if roi_corr.get(roi) is not None
+            ),
+            key=lambda x: x[1],
+            default=(None, None),
+        )
+        return max_layer, max_value
+
+    roi_names = list(layers_names_with_filtered_subjects[0][1]["LH_median_roi_correlation"].keys())
+
+    best_correlation = {
+        hemi: {
+            roi: {
+                "layer": max_layer_value(layers_names_with_filtered_subjects, hemi, roi)[0],
+                "value": max_layer_value(layers_names_with_filtered_subjects, hemi, roi)[1],
+            }
+            for roi in roi_names
+        }
+        for hemi in ["LH", "RH"]
+    }
+
+    return best_correlation
+
+
+def add_data_to_json(json_data, layer_name, subject_id, lh_median, rh_median, lh_median_roi_correlation,
+                     rh_median_roi_correlation):
     if not json_data:
         json_data = {
             "Layers": []
         }
-    
+
     subject = {
         "subject": subject_id,
         "LH_median_correlation": lh_median,
@@ -39,26 +94,12 @@ def add_data_to_json(json_data, layer_name, subject_id, lh_median, rh_median, lh
         json_data["Layers"].append(layer)
     else:
         existing_subject = next((subj for subj in layer["Subjects"] if subj["subject"] == subject_id), None)
-        
+
         if existing_subject is None:
             layer["Subjects"].append(subject)
         else:
             existing_subject.update(subject)
     return json_data
-
-def read_json_file(file_name):
-    if os.path.exists(file_name):
-        with open(file_name, 'r') as file:
-            data = json.load(file)
-    else:
-        data = {}
-    return data
-
-def write_json_file(file_name, data):
-    with open(file_name, 'w') as file:
-        json.dump(data, file, indent=2)
-
-
 
 
 def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, output_dir, layer_name, subj):
@@ -118,24 +159,24 @@ def plot_and_write_correlations(nsd_dataset, lh_correlation, rh_correlation, out
     def get_median_correlations_per_roi(roi_correlation, roi_names):
         median_roi_correlations = {}
         for i in range(len(roi_names)):
-           median_corr = np.median(roi_correlation[i])
-           if np.isnan(median_corr):
-               median_roi_correlations[roi_names[i]] = None
-           else:
-              median_roi_correlations[roi_names[i]] = median_corr
+            median_corr = np.median(roi_correlation[i])
+            if np.isnan(median_corr):
+                median_roi_correlations[roi_names[i]] = None
+            else:
+                median_roi_correlations[roi_names[i]] = median_corr
         return median_roi_correlations
-    
+
     lh_median_roi_correlation = get_median_correlations_per_roi(lh_roi_correlation, roi_names)
-    rh_median_roi_correlation = get_median_correlations_per_roi(rh_roi_correlation, roi_names) 
+    rh_median_roi_correlation = get_median_correlations_per_roi(rh_roi_correlation, roi_names)
     # Print and write ROI correlations
     print(f'LH median roi correlation: \n{lh_median_roi_correlation}\n')
     print(f'RH median roi correlation: \n{rh_median_roi_correlation}\n')
     # Write results to json file
     json_filename = f'{output_dir}/results.json'
     json_data = read_json_file(json_filename)
-    amended_json_data = add_data_to_json(json_data, layer_name, subj, lh_median, rh_median, lh_median_roi_correlation, rh_median_roi_correlation)
+    amended_json_data = add_data_to_json(json_data, layer_name, subj, lh_median, rh_median, lh_median_roi_correlation,
+                                         rh_median_roi_correlation)
     write_json_file(json_filename, amended_json_data)
-
 
     plottable_values_lh = [0 if value is None else value for value in list(lh_median_roi_correlation.values())]
     plottable_values_rh = [0 if value is None else value for value in list(rh_median_roi_correlation.values())]
