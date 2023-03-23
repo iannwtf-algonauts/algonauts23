@@ -8,7 +8,6 @@ def load_vgg16():
     return model, transform_image
 
 
-def load_from_file(model_filename):
+def load_from_file(model_filename, transform_image):
     model = tf.keras.models.load_model(model_filename)
-    transform_image = image_transforms.transform_generic
     return model, transform_image

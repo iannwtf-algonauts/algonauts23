@@ -8,7 +8,7 @@ def transform_vgg16(image):
     return image
 
 
-def transform_generic(image):
+def transform_alexnet(image):
     image = tf.image.resize(image, (227, 227))
     image = tf.cast(image, tf.float32) / 127.5 - 1.0
     mean = [0.485, 0.456, 0.406]
