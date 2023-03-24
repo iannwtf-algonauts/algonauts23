@@ -1,11 +1,7 @@
-import numpy as np
-import os
-from sklearn.linear_model import LinearRegression
-from src.algonauts.evaluators import correlations as corr
 from src.algonauts.data_processors.nsd_dataset import NSDDataset
 from src.algonauts.data_processors.tf_dataloader import load_datasets
-from src.algonauts.data_processors.reduce_dims import train_pca
-from src.algonauts.feature_extractors.tf_feature_extractor import extract_and_transform_features, slice_model
+import src.algonauts.feature_extractors.tf_feature_extractor as fe
+from src.algonauts.encoders.linear_encoder import predict_and_write
 
 
 def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_dir, exp_output_dir):
@@ -34,43 +30,38 @@ def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_d
             print('Datasets loaded')
 
             # Slice model at layer for feature extraction
-            model = slice_model(model, layer_name)
+            model = fe.slice_model(model, layer_name)
 
             # Train PCA
-            print('Training PCA...')
-            pca = train_pca(model, train_ds)
-            print('PCA over')
+            pca = fe.train_pca(model, train_ds)
 
             # Extract and transform features
             print('Extracting and transforming features...')
-            train_features = extract_and_transform_features(train_ds, model, pca)
-            val_features = extract_and_transform_features(val_ds, model, pca)
-            test_features = extract_and_transform_features(test_ds, model, pca)
+            train_features = fe.extract_and_transform_features(train_ds, model, pca)
+            val_features = fe.extract_and_transform_features(val_ds, model, pca)
+            test_features = fe.extract_and_transform_features(test_ds, model, pca)
             print('Features extracted and transformed')
 
             # Delete model to free up memory
             del model, pca
 
-            # Fit regression
-            print('Fitting regression...')
-            reg_lh = LinearRegression().fit(train_features, dataset.lh_fmri_train)
-            reg_rh = LinearRegression().fit(train_features, dataset.rh_fmri_train)
-            print('Regression fitted')
+            predict_and_write(dataset, exp_output_dir, layer_name, subj, train_features, val_features, test_features)
 
-            # Use fitted linear regressions to predict the validation and test fMRI data
-            print('Predicting fMRI data...')
-            lh_fmri_val_pred = reg_lh.predict(val_features)
-            lh_fmri_test_pred = reg_lh.predict(test_features)
-            rh_fmri_val_pred = reg_rh.predict(val_features)
-            rh_fmri_test_pred = reg_rh.predict(test_features)
-            print('fMRI data predicted')
-            # Calculate correlations for each hemispher
-            print('Calculating correlations...')
-            lh_correlation = corr.calculate_correlation(lh_fmri_val_pred, dataset.lh_fmri_val)
-            rh_correlation = corr.calculate_correlation(rh_fmri_val_pred, dataset.rh_fmri_val)
-            print('Correlations calculated')
 
-            corr.plot_and_write_correlations(dataset, lh_correlation, rh_correlation, exp_output_dir, layer_name, subj)
-            # Save test predictions
-            np.save(os.path.join(dataset.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)
-            np.save(os.path.join(dataset.subject_submission_dir, 'rh_pred_test.npy'), rh_fmri_test_pred)
+from src.algonauts.models.model_loaders import load_vgg16
+experiment = 'vgg_imagenet_wo_scaler'
+batch_size = 300
+challenge_data_dir = '../../../data/algonauts_2023_challenge_data'
+exp_output_dir = f'../../../data/out/{experiment}'
+model_loader = lambda: load_vgg16()
+model, _ = model_loader()
+print(*(layer.name for layer in model.layers), sep=' -> ')
+del model
+layers = ['block5_pool']
+subjects = [
+    1, 3, 6
+    # 2, 3, 4, 5, 6, 7, 8
+]
+run_tf_pipeline(batch_size=batch_size, model_loader=model_loader, layers=layers, subjects=subjects,
+                challenge_data_dir=challenge_data_dir,
+                exp_output_dir=exp_output_dir)

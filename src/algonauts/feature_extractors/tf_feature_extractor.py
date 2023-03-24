@@ -1,5 +1,8 @@
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
+from sklearn.decomposition import IncrementalPCA
+
 from src.algonauts.utils.console import HiddenPrints
 
 
@@ -16,6 +19,28 @@ def slice_model(model, layer_name):
         return model
 
 
+def train_pca(model, train_dataset):
+    """
+    Train PCA batch-by-batch for the given model
+    :param model: model / sliced model to extract features for training PCA
+    :param train_dataset: training dataset to be used in training PCA
+    :return:
+    """
+    pca = IncrementalPCA()
+    print("Training PCA")
+    for batch in tqdm(train_dataset):
+        # Extract features
+        with HiddenPrints():
+            ft = model.predict(batch)
+        # Flatten the features
+        ft = ft.reshape(ft.shape[0], -1)
+        # Fit PCA for this batch
+        pca.partial_fit(ft)
+    print("PCA training finished")
+    print(f'PCA components: {pca.n_components_}')
+    return pca
+
+
 def extract_and_transform_features(dataset, model, pca):
     """
     For each batch, use model to get dimensionally reduced predictions
@@ -25,7 +50,7 @@ def extract_and_transform_features(dataset, model, pca):
     :return: all features for all batches, vertically stacked
     """
     features = []
-    for batch in dataset:
+    for batch in tqdm(dataset):
         with HiddenPrints():
             ft = model.predict(batch)
         # Flatten the features
