@@ -1,7 +1,9 @@
 from src.algonauts.data_processors.nsd_dataset import NSDDataset
 from src.algonauts.data_processors.tf_dataloader import load_datasets
 import src.algonauts.feature_extractors.tf_feature_extractor as fe
-from src.algonauts.encoders.linear_encoder import predict_and_write
+from src.algonauts.encoders.linear_encoder import predict
+import src.algonauts.evaluators.correlations as corr
+from src.algonauts.utils.file import save_predictions
 
 
 def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_dir, exp_output_dir):
@@ -45,11 +47,26 @@ def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_d
             # Delete model to free up memory
             del model, pca
 
-            predict_and_write(dataset, exp_output_dir, layer_name, subj, train_features, val_features, test_features)
+            pred = predict(dataset, train_features, val_features, test_features)
+
+            # Calculate correlations for each hemisphere
+            print('Calculating left hemisphere correlations...')
+            lh_correlation = corr.calculate_correlation(pred['val']['left'], dataset.lh_fmri_val)
+            print('Calculating right hemisphere correlations...')
+            rh_correlation = corr.calculate_correlation(pred['val']['right'], dataset.rh_fmri_val)
+            print('Correlations calculated')
+
+            # Plot and write correlations
+            corr.plot_and_write_correlations(dataset, lh_correlation, rh_correlation, exp_output_dir, layer_name, subj)
+
+            # Save test predictions
+            save_predictions(lh_fmri_test_pred=pred['test']['left'],
+                             rh_fmri_test_pred=pred['test']['right'],
+                             subject_submission_dir=dataset.subject_submission_dir)
 
 
 from src.algonauts.models.model_loaders import load_vgg16
-experiment = 'vgg_imagenet_wo_scaler'
+experiment = 'vgg_imagenet_refactored'
 batch_size = 300
 challenge_data_dir = '../../../data/algonauts_2023_challenge_data'
 exp_output_dir = f'../../../data/out/{experiment}'

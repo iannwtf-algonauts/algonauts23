@@ -1,11 +1,15 @@
-import os
-
-import numpy as np
 from sklearn.linear_model import Ridge
-from src.algonauts.evaluators import correlations as corr
 
 
-def predict_and_write(dataset, exp_output_dir, layer_name, subj, features_train, features_val, features_test):
+def predict(dataset, features_train, features_val, features_test):
+    """
+    Use a linear encoder to predict fmri data from given features
+    :param dataset: NSDDataset object, used to get fmri data
+    :param features_train: training features
+    :param features_val: validation features
+    :param features_test: test features
+    :return: predictions as a dictionary {val:{left, right}, test:{left, right}}
+    """
     # Fit linear regressors for each hemisphere
     print("Fitting regression...")
     reg_lh = Ridge().fit(features_train, dataset.lh_fmri_train)
@@ -21,15 +25,5 @@ def predict_and_write(dataset, exp_output_dir, layer_name, subj, features_train,
     rh_fmri_test_pred = reg_rh.predict(features_test)
     print("fMRI prediction finished.")
 
-    # Calculate correlations for each hemisphere
-    print('Calculating correlations...')
-    lh_correlation = corr.calculate_correlation(lh_fmri_val_pred, dataset.lh_fmri_val)
-    rh_correlation = corr.calculate_correlation(rh_fmri_val_pred, dataset.rh_fmri_val)
-    print('Correlations calculated')
-
-    corr.plot_and_write_correlations(dataset, lh_correlation, rh_correlation, exp_output_dir, layer_name, subj)
-    # Save test predictions
-    np.save(os.path.join(dataset.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)
-    np.save(os.path.join(dataset.subject_submission_dir, 'rh_pred_test.npy'), rh_fmri_test_pred)
-
-    return lh_fmri_test_pred, rh_fmri_test_pred
+    return {'val': {'left': lh_fmri_val_pred, 'right': rh_fmri_val_pred},
+            'test': {'left': lh_fmri_test_pred, 'right': rh_fmri_test_pred}}
