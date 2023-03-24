@@ -63,22 +63,3 @@ def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_d
             save_predictions(lh_fmri_test_pred=pred['test']['left'],
                              rh_fmri_test_pred=pred['test']['right'],
                              subject_submission_dir=dataset.subject_submission_dir)
-
-
-from src.algonauts.models.model_loaders import load_vgg16
-experiment = 'vgg_imagenet_refactored'
-batch_size = 300
-challenge_data_dir = '../../../data/algonauts_2023_challenge_data'
-exp_output_dir = f'../../../data/out/{experiment}'
-model_loader = lambda: load_vgg16()
-model, _ = model_loader()
-print(*(layer.name for layer in model.layers), sep=' -> ')
-del model
-layers = ['block5_pool']
-subjects = [
-    1, 3, 6
-    # 2, 3, 4, 5, 6, 7, 8
-]
-run_tf_pipeline(batch_size=batch_size, model_loader=model_loader, layers=layers, subjects=subjects,
-                challenge_data_dir=challenge_data_dir,
-                exp_output_dir=exp_output_dir)
