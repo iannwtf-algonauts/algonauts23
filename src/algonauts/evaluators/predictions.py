@@ -31,7 +31,7 @@ def merge_predictions_per_subject(subj, roi_indices, exp_output_dir):
     :return:
     """
     # Get list of ROI names
-    roi_names = [roi_name for roi_name in roi_indices['LH'].keys()]
+    roi_names = list(roi_indices['LH'].keys())
 
     # Get dictionary of layers with the best correlations per ROI
     best_correlations = find_best_correlations(f'{exp_output_dir}/results.json', subj)
