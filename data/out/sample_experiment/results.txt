@@ -1,5 +1,0 @@
---- Sample file ---
-Layer: layer1 Subject: 1
-LH Correlation: 0.3917504708454465 RH Correlation: 0.39281925006694707
-Layer: layers1 Subject: 2
-LH Correlation: 0.3591239191897224 RH Correlation: 0.3728713432435343
