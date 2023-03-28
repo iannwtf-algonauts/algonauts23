@@ -10,5 +10,5 @@ def load_vgg16():
 
 
 def load_from_file(model_filename, transform_image):
-    model = tf.keras.models.load_model(model_filename, custin_objects={'F1Score': tfa.metrics.F1Score})
+    model = tf.keras.models.load_model(model_filename, custom_objects={'F1Score': tfa.metrics.F1Score})
     return model, transform_image
