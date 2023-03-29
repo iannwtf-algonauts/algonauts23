@@ -18,7 +18,9 @@ Andrei Klimenok, Pelin Kömürlüoğlu, Ibrahim Muhip Tezcan
     * [Challenge Data](#challenge-data)
     * [Dependencies](#dependencies)
   * [Usage](#usage)
+    * [Running the pipeline using notebooks](#running-the-pipeline-using-notebooks)
     * [Running the pipeline on Python](#running-the-pipeline-on-python)
+    * [Output files](#output-files)
   * [File Structure](#file-structure)
   * [Results](#results)
   * [Contributing](#contributing)
@@ -61,14 +63,21 @@ tensorflow-addons
 
 ## Usage
 
+### Running the pipeline using notebooks
+
 For generating output (challenge submission files, variance graphs and correlation results) configure and run the
 notebook `tf_pipeline.ipynb`
 
-You need to specify `experiment_name` which is used to create output folders.
+You need to specify the name `experiment` which is used to create output folders.
 
 You also need to select the proper environment. 
 - For running locally, you can pick `jupyter_notebook`
-- You can also run on paperspace or Google Colab with some further configuration
+- You can also run on Paperspace or Google Colab with some further configuration
+
+In the pipeline notebook you can either choose to load a pretrained model from keras.applications library (eg. VGG16)
+or choose to load a model from file where a model was trained in one of the training notebooks, such as
+`train_alexnet_on_coco.ipynb`. If loading from a file, the model file should be present, with the same name as the
+`experiment`.
 
 ### Running the pipeline on Python
 
@@ -88,6 +97,23 @@ run_tf_pipeline(batch_size=batch_size,
                 challenge_data_dir=challenge_data_dir,
                 exp_output_dir=exp_output_dir)
 ```
+
+### Output files
+
+Running the pipeline will create the following output files under `data/out/{experiment}` folder:
+- `lh_pred_test.npy` and `rh_pred_test.npy` files, which are the predictions saved in the numpy array file format
+  - Saved under `{layer_name}/algonauts_2023_challenge_submission` folder for each subject.
+  - Contents of `{layer_name}/algonauts_2023_challenge_submission` folder can be zipped & submitted to the challenge
+  - [Example](data/out/sample_experiment/layer1/algonauts_2023_challenge_submission/subj01/lh_pred_test.npy)
+- `correlations.png`, graph showing correlations of predictions and actual brain data on the validation set
+  - Saved under `{layer_name}/variance_graphs/{subject}`
+  - [Example](data/out/sample_experiment/layer1/variance_graphs/subj01/correlations.png)
+- `results.json` with correlation numbers for each ROI per hemisphere, for each subject and layer
+  - [Example](data/out/sample_experiment/results.json)
+
+If working remotely, you can mount something like Google Drive to the `data/out/{experiment}` folder, so that you can
+access the output files later.
+
 ## File Structure
 Below is the basic file structure of the repository:
 ```
