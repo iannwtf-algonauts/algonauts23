@@ -1,6 +1,7 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
+# import tensorflow_addons as tfa
 from src.algonauts.data_processors import image_transforms
+from src.algonauts.models.alexnet import create_alexnet_softmax
 
 
 def load_vgg16():
@@ -9,6 +10,15 @@ def load_vgg16():
     return model, transform_image
 
 
+def load_alexnet(num_classes):
+    model = create_alexnet_softmax(num_classes)
+    optimizer = tf.keras.optimizers.Adam()
+    loss = tf.keras.losses.BinaryCrossentropy()
+    model.compile(optimizer=optimizer, loss=loss, metrics='accuracy')
+    transform_image = image_transforms.transform_alexnet
+    return model, transform_image
+
+
 def load_from_file(model_filename, transform_image):
-    model = tf.keras.models.load_model(model_filename, custom_objects={'F1Score': tfa.metrics.F1Score})
+    model = tf.keras.models.load_model(model_filename)  # , custom_objects={'F1Score': tfa.metrics.F1Score})
     return model, transform_image
