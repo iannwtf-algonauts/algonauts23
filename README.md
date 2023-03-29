@@ -1,10 +1,10 @@
 # Project: Algonauts Challenge 2023
 
-This is a repository for the course project "Algonauts Challenge 2023", of the Winter Semester 2022/2023 course "Implementing Artificial Neural Networks" at the Institute of Cognitive Science, University of Osnabrück.
+This is a repository for the course project "Algonauts Challenge 2023", of the Winter Semester 2022/2023 course
+"Implementing Artificial Neural Networks with Tensorflow" at the Institute of Cognitive Science, University of Osnabrück.
 
-The goal of this project is to train models
-and experiment with different settings for artificial neural networks (ANNs) and see how they perform for the
-Algonauts Challenge 2023.
+The goal of this project is to train models and experiment with different settings for artificial neural networks (ANNs)
+and see how they perform for the Algonauts Challenge 2023.
 
 The project team consists of the following authors:
 
@@ -34,9 +34,9 @@ To be able to run the code in the project, you need to have the Algonauts Challa
 This dataset contains the following information:
 - `roi_masks`:  .npy files containing indices and masks for each ROI
 - `test_split`: Stimulus images for each subject in the Natural Scenes Dataset (NSD) test split
-- `training_split`: Stimnulus images & fMRI responses for each subject in NSD training split
+- `training_split`: Stimulus images & fMRI responses for each subject in NSD training split
 
-For more information on the dataset and instructions to download it, go to the challenge website:
+For more information on the dataset and instructions to download it, you can go to the challenge website:
 http://algonauts.csail.mit.edu/challenge.html
 
 ### Dependencies
@@ -61,7 +61,8 @@ tensorflow-addons
 
 ## Usage
 
-For generating output such as challenge submission files, variance graphs and correlation results, run the notebook `tf_pipeline.ipynb`
+For generating output (challenge submission files, variance graphs and correlation results) configure and run the
+notebook `tf_pipeline.ipynb`
 
 You need to specify `experiment_name` which is used to create output folders.
 
@@ -73,7 +74,8 @@ You also need to select the proper environment.
 
 Alternatively, you can run the challenge pipeline directly on Python instead of a notebook.
 
-For this, you need to configure certain parameters and run the method `run_tf_pipeline()` inside `src/algonauts/pipelines/tf_pipeline.py`
+For this, you need to configure certain parameters and run the method `run_tf_pipeline()` inside
+`src/algonauts/pipelines/tf_pipeline.py`
 
 An example is given in `src/algonauts/Main.py`
 
