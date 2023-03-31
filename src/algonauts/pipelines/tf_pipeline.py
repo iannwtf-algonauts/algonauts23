@@ -63,3 +63,6 @@ def run_tf_pipeline(batch_size, model_loader, layers, subjects, challenge_data_d
             save_predictions(lh_fmri_test_pred=pred['test']['left'],
                              rh_fmri_test_pred=pred['test']['right'],
                              subject_submission_dir=dataset.subject_submission_dir)
+
+            # Delete predictions and correlations, since we already saved them, to free up memory
+            del pred, lh_correlation, rh_correlation

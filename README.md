@@ -60,13 +60,19 @@ jupyter
 tensorflow-addons
 ```
 
+### Self-Trained Models (Optional)
+
+If you want to use the self-trained models instead of training them
+yourself, you can download the models [here](https://myshare.uni-osnabrueck.de/d/fbcb6c2079184184b3a8/)
+
+The models should be saved in the folder [data/models](data/models)
 
 ## Usage
 
 ### Running the pipeline using notebooks
 
 For generating output (challenge submission files, variance graphs and correlation results) configure and run the
-notebook `tf_pipeline.ipynb`
+notebook [tf_pipeline.ipynb](notebooks/tf_pipeline.ipynb)
 
 You need to specify the name `experiment` which is used to create output folders.
 
@@ -76,7 +82,7 @@ You also need to select the proper environment.
 
 In the pipeline notebook you can either choose to load a pretrained model from keras.applications library (eg. VGG16)
 or choose to load a model from file where a model was trained in one of the training notebooks, such as
-`train_alexnet_on_coco.ipynb`. If loading from a file, the model file should be present, with the same name as the
+[train_alexnet_on_coco.ipynb](notebooks/experiments/training/train_alexnet_on_coco.ipynb). If loading from a file, the model file should be present, with the same name as the
 `experiment`.
 
 ### Running the pipeline on Python
@@ -84,9 +90,9 @@ or choose to load a model from file where a model was trained in one of the trai
 Alternatively, you can run the challenge pipeline directly on Python instead of a notebook.
 
 For this, you need to configure certain parameters and run the method `run_tf_pipeline()` inside
-`src/algonauts/pipelines/tf_pipeline.py`
+[src/algonauts/pipelines/tf_pipeline.py](src/algonauts/pipelines/tf_pipeline.py)
 
-An example is given in `src/algonauts/Main.py`
+An example is given in [src/algonauts/Main.py](src/algonauts/Main.py)
 
 The function requires the parameters below:
 ```python
