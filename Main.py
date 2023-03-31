@@ -1,15 +1,13 @@
 from src.algonauts.models.model_loaders import load_vgg16
 from src.algonauts.pipelines.tf_pipeline import run_tf_pipeline
 
-
 """
 Main file for those who want to quickly run the challenge pipeline on a certain model
 Here the example used is VGG16 from keras, feel free to change according to needs
 """
 
-
 # Specify folders for data and output
-base_dir = '..'
+base_dir = '.'
 experiment = 'test_experiment'
 challenge_data_dir = f'{base_dir}/data/algonauts_2023_challenge_data'
 exp_output_dir = f'{base_dir}/data/out/{experiment}'
