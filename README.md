@@ -65,7 +65,7 @@ tensorflow-addons
 If you want to use the self-trained models instead of training them
 yourself, you can download the models [here](https://myshare.uni-osnabrueck.de/d/fbcb6c2079184184b3a8/)
 
-The models should be saved in the folder [data/models](data/models)
+The models should be saved in the folder `data/models`
 
 ## Usage
 
@@ -82,7 +82,7 @@ You also need to select the proper environment.
 
 In the pipeline notebook you can either choose to load a pretrained model from keras.applications library (eg. VGG16)
 or choose to load a model from file where a model was trained in one of the training notebooks, such as
-[train_alexnet_on_coco.ipynb](notebooks/experiments/training/train_alexnet_on_coco.ipynb). If loading from a file, the model file should be present, with the same name as the
+[train_alexnet_on_coco.ipynb](notebooks/training/train_alexnet_on_coco.ipynb). If loading from a file, the model file should be present, with the same name as the
 `experiment`.
 
 There are also notebooks with experiment results that contain runnable code, for example [alexnet_coco.ipynb](notebooks/challenge/alexnet_coco.ipynb)
@@ -96,7 +96,7 @@ Alternatively, you can run the challenge pipeline directly on Python instead of 
 For this, you need to configure certain parameters and run the method `run_tf_pipeline()` inside
 [src/algonauts/pipelines/tf_pipeline.py](src/algonauts/pipelines/tf_pipeline.py)
 
-An example is given in [src/algonauts/Main.py](src/algonauts/Main.py)
+An example is given in [Main.py](Main.py)
 
 The function requires the parameters below:
 ```python
