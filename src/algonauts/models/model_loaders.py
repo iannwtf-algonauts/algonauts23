@@ -1,5 +1,4 @@
 import tensorflow as tf
-# import tensorflow_addons as tfa
 from src.algonauts.data_processors import image_transforms
 from src.algonauts.models.alexnet import create_alexnet_softmax
 
@@ -19,6 +18,6 @@ def load_alexnet(num_classes):
     return model, transform_image
 
 
-def load_from_file(model_filename, transform_image):
-    model = tf.keras.models.load_model(model_filename)  # , custom_objects={'F1Score': tfa.metrics.F1Score})
+def load_from_file(model_filename, transform_image, custom_objects=None):
+    model = tf.keras.models.load_model(model_filename, custom_objects=custom_objects)
     return model, transform_image
