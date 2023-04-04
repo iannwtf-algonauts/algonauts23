@@ -201,7 +201,7 @@ Below is the basic file structure of the repository:
 
 ## Results
 
-Full results will be documented in the project report.
+The full results are documented in [the project report](https://github.com/iannwtf-algonauts/algonauts23/blob/main/project_submission/Algonauts_Challenge_Report_team-iannwtf.pdf), which can be found in the "project_submission" folder.
 
 Here are some examples from challenge scores on test splits:
 
